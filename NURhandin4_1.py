@@ -127,17 +127,21 @@ from astropy import constants as const
 
 G = const.G.to_value()
 M_sun = const.M_sun.to_value()
-AU_to_m = 1.495978707e11
-days_to_s = 86400
+AU_to_m = 1.495978707e11 #I know there is probably a much cleaner way to do
+days_to_s = 86400 #these conversions using astropy, but I found this easier
 r_sun = np.array(sunpos) * AU_to_m
 
-def magnitude(r): #three dimensional input vector of the form r = (x,y,z)
-    return np.sqrt(r[0]**2 + r[1]**2 + r[2]**2)
+def magnitude_squared(r): 
+    #three dimensional input vector of the form r = (x,y,z)
+    return r[0]**2 + r[1]**2 + r[2]**2
 
 def Fgrav(t,r,v):
-    return G*M_sun*(r_sun-r)/(magnitude(r_sun-r))**3
+    return G*M_sun*(r_sun-r)*(magnitude_squared(r_sun-r))**(-1.5)
 
-def euler3D_2ndorder(fun,t0,r0,v0,tN,h): #for a function f(t,r)
+def euler3D_2ndorder(fun,t0,r0,v0,tN,h):
+    """
+    Explicit Euler method for a function(t,r) like the acceleration a(r)
+    """
     t = np.arange(t0,tN,h)
     r = np.zeros((len(t),3))
     v = np.copy(r)
@@ -163,6 +167,10 @@ def leapfrog(fun,t0,r0,v0,tN,h): #works for a function f(t,r)
 timerange = 73050*86400 #200 years in seconds
 
 def lf_problem1b(pos,vel):
+    """
+    I made this function so we only have to do the leapfrog once per planet,
+    as it is slow to do so multiple times. 
+    """
     pos = np.array(pos) * AU_to_m
     vel = np.array(vel) * AU_to_m / days_to_s
     return leapfrog(Fgrav,0,pos,vel,timerange,0.5*days_to_s)
@@ -213,6 +221,80 @@ plt.title('Time t against height z for the planets using Leapfrog')
 plt.legend(loc='upper right')
 plt.show()
 
+#PROBLEM 1C
+
+def rk4_2ndorder(fun,t0,r0,v0,tN,h):
+    """
+    We treat the velocity v as just another variable that the acceleration a 
+    depends on, so a = F(t,r,v). This way we dynamically update the k-values 
+    used to calculate the trajectory r. 
+    """
+    t = np.arange(t0,tN,h)
+    r = np.zeros((len(t),3))
+    v = np.copy(r)
+    r[0,:] = r0
+    v[0,:] = v0
+    for i in range(len(r)-1):
+        
+        k1_vel = h*v[i,:]
+        k1_acc = h*fun(t[i],r[i,:],v[i,:])
+        
+        k2_vel = h*(v[i,:]+0.5*k1_acc)
+        k2_acc = h*fun(t[i]+0.5*h,r[i,:]+0.5*k1_vel,v[i,:]+0.5*k1_vel)
+        
+        k3_vel = h*(v[i,:]+0.5*k2_acc)
+        k3_acc = h*fun(t[i]+0.5*h,r[i,:]+0.5*k2_vel,v[i,:]+0.5*k2_vel)
+        
+        k4_vel = h*(v[i,:]+k3_acc)
+        k4_acc = h*fun(t[i]+h,r[i,:]+k3_vel,v[i,:]+k3_vel)
+        
+        v[i+1,:] = v[i,:] + k1_acc/6 + k2_acc/3 + k3_acc/3 + k4_acc/6
+        r[i+1,:] = r[i,:] + k1_vel/6 + k2_vel/3 + k3_vel/3 + k4_vel/6
+        
+    return t/timerange*200,r/AU_to_m,v/AU_to_m*days_to_s
+
+def rk4_problem1c(pos,vel):
+    """
+    I made this function so we only have to do the RK4 once per planet,
+    as it is extremely slow to do so multiple times. 
+    """
+    pos = np.array(pos) * AU_to_m
+    vel = np.array(vel) * AU_to_m / days_to_s
+    return rk4_2ndorder(Fgrav,0,pos,vel,timerange,0.5*days_to_s)
+
+rk4_earth = rk4_problem1c(earthpos,earthvel)
+rk4_mercury = rk4_problem1c(mercurypos,mercuryvel)
+rk4_jupiter = rk4_problem1c(jupiterpos,jupitervel)
+
+
+plt.plot(lf_earth[1][:,0],lf_earth[1][:,1],label='Leapfrog (control)',\
+         color='royalblue',linestyle='dashed',linewidth=0.5,zorder=10)
+plt.plot(rk4_earth[1][:,0],rk4_earth[1][:,1],label='Earth',color='blue')
+plt.plot(rk4_mercury[1][:,0],rk4_mercury[1][:,1],label='Mercury',\
+         color='saddlebrown')
+plt.plot(rk4_jupiter[1][:,0],rk4_jupiter[1][:,1],label='Jupiter',\
+         color='peru')
+plt.xlabel('x-position [AU]')
+plt.ylabel('y-position [AU]')
+plt.title('Orbits of planets in (x,y) plane using 4th order Runge-Kutta')
+plt.legend(loc='upper right')
+plt.show()
+
+earth_xdiff = np.abs(lf_earth[1][:,0] - rk4_earth[1][:,0])
+mercury_xdiff = np.abs(lf_mercury[1][:,0] - rk4_mercury[1][:,0])
+jupiter_xdiff = np.abs(lf_jupiter[1][:,0] - rk4_jupiter[1][:,0])
+
+plt.plot(lf_earth[0],earth_xdiff,label='Earth',color='royalblue',\
+         linewidth=0.1)
+plt.plot(lf_mercury[0],mercury_xdiff,label='Mercury',color='saddlebrown',\
+         linewidth=0.1)
+plt.plot(lf_jupiter[0],jupiter_xdiff,label='Jupiter',color='peru',\
+         linewidth=0.1)
+plt.xlabel('time [years]')
+plt.ylabel('Absolute difference in x-position [AU]')
+plt.title('Time t against height z for the planets using Leapfrog')
+plt.legend(loc='upper right')
+plt.show()
 
 
 
