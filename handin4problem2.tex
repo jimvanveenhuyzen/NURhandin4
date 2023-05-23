@@ -1,0 +1,78 @@
+\section*{Code of Problem 2}
+
+The code is included below. Like in the previous hand-ins, I use code between sub-questions so I found that having one big .py file per problem is the most efficient.
+%\lstinputlisting{NURhandin4_2.py}
+
+\section*{Problem 2a}
+
+In the first sub-question of problem 1 we are supposed to make two plots showing the $(x,y)$ and $(x,z)$ positions of all componenets of the solar system at some set time $t_0$. We let this time be equal to the given time in the example. This problem is very simple, we copy the given routine and essentially just apply it for not only Mars but all components of the solar system, letting the position $\vec{r}$ and velocities ${v}$ of the components be an array corresponding to $\vec{r} = (x,y,z)$ and $\vec{v} = (v_x,v_y,v_z)$ respectively, which we import using the \textbf{astropy} library. Converting to units of AU following the example, we obtain the following two plots. The size of the planets and the Sun in the plots are $\textbf{not}$ to scale! All planets appear to have the same size (not realistic) and I made the Sun slightly larger to accentuate its size and central position. I chose the sizes of the planets in a way such that Mercury, Venus and Earth are distinguishable as they are all quite close to the Sun. 
+
+%\begin{figure}[h!]
+%  \centering
+%  \includegraphics[width=0.7\linewidth]{./1a_xyplot.png}
+%  \caption{Test.}
+%\end{figure}
+
+%\begin{figure}[h!]
+%  \centering
+%  \includegraphics[width=0.7\linewidth]{./1a_xzplot.png}
+%  \caption{Test.}
+%\end{figure}
+
+\section*{Problem 2b}
+
+In this problem we have to solve the differential equation relating the force $\vec{F}(\vec{x}_i)$ to the acceleration of an object $\vec{a}_i$ at some timestep $i$. In this context, we are to use the gravitational force between two bodies, given by the equation:\\
+
+\begin{equation}
+\vec{F}(\vec{x}_i) = \vec{\ddot{r}} = G \sum_{j \neq i}^N m_j \frac{\vec{r}_j - \vec{r}_i}{|\vec{r}_j - \vec{r}_i|^3}
+\end{equation}
+
+Here, $G$ is the gravitational constant, $m_j$ is the mass of an object from which $i$ experiences a gravitational force, and $\vec{r}_i$ and $\vec{r}_j$ are the positions of objects $i$ and $j$ respectively. Due to the significant mass difference (several magnitudes) between the Sun and the planets of the solar system, it is a valid assumption to take the sun as a stationary object at its current position, because the forces experienced by the Sun due to the gravitational pull of the other planets are too insignificant to influence its position in space $\vec{r}_{\odot}$. That said, the other way around is a much different story. The forces the planets experience due to the gravitational pull of the Sun is significant up to the point that their positions are almost entirely determined by the Sun's gravity, where we make a major simplification in that we do not consider the gravitational forces the planets exert on each other. This effect is out of scope for this assignment. So, the equation for the gravitational force experienced by planet $i$ due to the Sun can be reduced to the following expression:
+
+\begin{equation}
+\vec{F}(\vec{x}_i) = \vec{\ddot{r}} = G M_{\odot} \frac{\vec{r}_{\odot} - \vec{r}_i}{|\vec{r}_{\odot} - \vec{r}_i|^3}
+\end{equation}
+
+Here, $M_{\odot}$ is the mass of the Sun, and $\vec{r}_{\odot}$ is its (assumed) \textbf{constant} position in space. This expression is included as a function in the code, where I imported $G$ and $M_{\odot}$ using the \textbf{astropy} library. I'd like to quickly note that I do use astropy to import constants, but I find it easier to just define variables in order to convert between units in some situations, as I simply find it to be much easier. An example of this is converting from AU to meters. In order to find the positions of the planets as a function of time $\vec{r}(t)$, we have to solve the given differential equation $\vec{F}(\vec{x}_i) = \vec{a}_i$. It is first useful to consider that we are dealing with a second-order differential equation of the form $y'' = f(y)$ with initial conditions $y(a) = p$ and $y'(b) = q$, where $y(t)$ is some function explicitly depending on time $t$ and $f(y)$ is some function explicitly depending on $y(t)$ and implicitly depending on $t$. In the context of this problem, $y(t)$ is the position $\vec{r}(t)$, $y'(t)$ is the velocity $\vec{v}(t)$ and lastly $y"(t)$ is the acceleration $\vec{a}(t)$. In other words, we have:
+
+\begin{equation}
+ \vec{\ddot{r}} = F(\vec{r})
+\end{equation}
+
+So to solve this problem, we need an algorithm that solves second order differential equations for us, given initial conditions on the positions and velocity. We have these initial conditions for the positions and velocities planets already because we imported them in part a). For calculating forces, the \textbf{leapfrog} algorithm is perfect because it conserves the total energy while integrating an orbit by taking half steps in the velocity $\vec{v}_{i+1/2}$ combined with regular steps for the position $\vec{r}_i$. Therefore, this is the main algorithm we use to solve the second order differential equation and obtain the positions of the planets as a function of time $\vec{r}(t)$. As the problem mentions however, we need to 'kickstart' the algorithm by applying an acceleration, which we do using the \textbf{Euler method} for second order ODEs by taking a single half-step from $t$ to $t + \frac{h}{2}$, where $h$ is the stepsize. By doing this, we can translate a starting velocity $\vec{v}_0$ to the velocity half a timestep later, $\vec{v}_{1/2}$, which we can then use in the leapfrog algorithm. Note in the code that we end up using the same iteration $i$ for the for-loop for both position $\vec{r}_i$ and velocity $\vec{v}_i$ which might seem confusing, but we must remember that we have offset $\vec{v}$ by half a step already by kickstarting the algorithm. Using the initial positions and velocities of the planets imported from astropy at the time $t_0$, a timerange of 200 years and a time-step of 0.5 days, we obtain the following plots for the orbits of all planets in the $x-y$ plane and for the time versus $z$-position plot. Note that I reduced the line thickness of the planets closest to the Sun (Mercury, Venus, Earth, Mars) so that it is easier to distinguish between them in the plot. 
+
+%\begin{figure}[h!]
+%  \centering
+%  \includegraphics[width=0.7\linewidth]{./1b_xyplot.png}
+%  \caption{Test.}
+%\end{figure}
+
+%\begin{figure}[h!]
+%  \centering
+%  \includegraphics[width=0.7\linewidth]{./1b_tzplot.png}
+%  \caption{Test.}
+%\end{figure}
+
+I already hinted at the reason that leapfrog is a suitable algorithm to use for this problem, and that is that it conserves the \textbf{total energy} of a system. To explain this a bit more in-depth, we must realize that the circular motion of an obiting body around a point (in this case of a planet around the Sun) is actually just a simple \textit{harmonic oscillator}, for which the total energy $E$, comprised of the sum of the kinetic $E_{kin}$ and potential energies $E_{pot}$, is always conserved in the case where there is no energy leakage (e.g. due to friction). In other words, $E_{kin,i} + E_{pot,i} = E_{kin,f} + E_{pot,f}$ for some arbitrary initial and final times $t_i$ and $t_f$. In the plot of the planetary orbits we see that the orbits have an elliptical shape. As a result, the kinetic energy of a planet will be higher if, relative to its orbit, it is near the Sun compared to when it is further away. This increase in kinetic energy is accompanied by a loss in potential energy.\\
+
+All the algorithms that are part of the material except for leapfrog are either explicit/forward or implicit/backward methods of solving ODEs. Using explicit methods for the orbit adds energy over time, causing the orbits to diverge in an ever increasing spiral shape, while implicit methods remove energy, causing the orbit to spiral toward the centre over time. This is because energy needs to be kept constant per timestep in order to conserve a circular orbit; it has a known associated energy! So in conclusion, leapfrog is best to use here. 
+
+%\begin{figure}[h!]
+%  \centering
+%  \includegraphics[width=0.7\linewidth]{./1b_figure1.png}
+%  \caption{In this log-log plot we plot the modelled number of galaxies $N_i$ at the radii of the data file m11 against the data histogram of these same radii.}
+%\end{figure}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
