@@ -4,7 +4,7 @@ wget https://home.strw.leidenuniv.nl/~belcheva/galaxy_data.txt
 
 python3 NURhandin4_1.py
 python3 NURhandin4_2.py
-python3 NURhandin4_3.py > NURhandin4problem3.txt
+python3 NURhandin4_3.py > handin4problem3.txt
 
 echo "Generating the pdf"
 
