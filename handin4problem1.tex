@@ -10,14 +10,14 @@ In the first sub-question of problem 1 we are supposed to make two plots showing
 \begin{figure}[h!]
   \centering
   \includegraphics[width=0.7\linewidth]{./1a_xyplot.png}
-  \caption{Test.}
+  \caption{Plot of the (x,y) positions for all objects in units of AU at the current time defined in the example.}
 \end{figure}
 
-%\begin{figure}[h!]
-%  \centering
-%  \includegraphics[width=0.7\linewidth]{./1a_xzplot.png}
-%  \caption{Test.}
-%\end{figure}
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.7\linewidth]{./1a_xzplot.png}
+  \caption{Plot of the (x,z) positions for all objects in units of AU at the current time defined in the example.}
+\end{figure}
 
 \section*{Problem 1b}
 
@@ -41,52 +41,47 @@ Here, $M_{\odot}$ is the mass of the Sun, and $\vec{r}_{\odot}$ is its (assumed)
 
 So to solve this problem, we need an algorithm that solves second order differential equations for us, given initial conditions on the positions and velocity. We have these initial conditions for the positions and velocities planets already because we imported them in part a). For calculating forces, the \textbf{leapfrog} algorithm is perfect because it conserves the total energy while integrating an orbit by taking half steps in the velocity $\vec{v}_{i+1/2}$ combined with regular steps for the position $\vec{r}_i$. Therefore, this is the main algorithm we use to solve the second order differential equation and obtain the positions of the planets as a function of time $\vec{r}(t)$. As the problem mentions however, we need to 'kickstart' the algorithm by applying an acceleration, which we do using the \textbf{Euler method} for second order ODEs by taking a single half-step from $t$ to $t + \frac{h}{2}$, where $h$ is the stepsize. By doing this, we can translate a starting velocity $\vec{v}_0$ to the velocity half a timestep later, $\vec{v}_{1/2}$, which we can then use in the leapfrog algorithm. Note in the code that we end up using the same iteration $i$ for the for-loop for both position $\vec{r}_i$ and velocity $\vec{v}_i$ which might seem confusing, but we must remember that we have offset $\vec{v}$ by half a step already by kickstarting the algorithm. Using the initial positions and velocities of the planets imported from astropy at the time $t_0$, a timerange of 200 years and a time-step of 0.5 days, we obtain the following plots for the orbits of all planets in the $x-y$ plane and for the time versus $z$-position plot. Note that I reduced the line thickness of the planets closest to the Sun (Mercury, Venus, Earth, Mars) so that it is easier to distinguish between them in the plot. 
 
-%\begin{figure}[h!]
-%  \centering
-%  \includegraphics[width=0.7\linewidth]{./1b_xyplot.png}
-%  \caption{Test.}
-%\end{figure}
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.7\linewidth]{./1b_xyplot.png}
+  \caption{Plot of all objects r(x,y,0) in the x-y plane over a timespan of 200 years in units of AU. We see the planets move in elliptical orbits around the Sun.}
+\end{figure}
 
-%\begin{figure}[h!]
-%  \centering
-%  \includegraphics[width=0.7\linewidth]{./1b_tzplot.png}
-%  \caption{Test.}
-%\end{figure}
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.7\linewidth]{./1b_tzplot.png}
+  \caption{Plot of the position in the z-plane as a function of time for all objects, spanning over a time of 200 years. We see that the orbits of the planets are bound nicely, oscillating in height as per their orbital period around the Sun.}
+\end{figure}
 
 I already hinted at the reason that leapfrog is a suitable algorithm to use for this problem, and that is that it conserves the \textbf{total energy} of a system. To explain this a bit more in-depth, we must realize that the circular motion of an obiting body around a point (in this case of a planet around the Sun) is actually just a simple \textit{harmonic oscillator}, for which the total energy $E$, comprised of the sum of the kinetic $E_{kin}$ and potential energies $E_{pot}$, is always conserved in the case where there is no energy leakage (e.g. due to friction). In other words, $E_{kin,i} + E_{pot,i} = E_{kin,f} + E_{pot,f}$ for some arbitrary initial and final times $t_i$ and $t_f$. In the plot of the planetary orbits we see that the orbits have an elliptical shape. As a result, the kinetic energy of a planet will be higher if, relative to its orbit, it is near the Sun compared to when it is further away. This increase in kinetic energy is accompanied by a loss in potential energy.\\
 
 All the algorithms that are part of the material except for leapfrog are either explicit/forward or implicit/backward methods of solving ODEs. Using explicit methods for the orbit adds energy over time, causing the orbits to diverge in an ever increasing spiral shape, while implicit methods remove energy, causing the orbit to spiral toward the centre over time. This is because energy needs to be kept constant per timestep in order to conserve a circular orbit; it has a known associated energy! So in conclusion, leapfrog is best to use here. 
 
-%\begin{figure}[h!]
-%  \centering
-%  \includegraphics[width=0.7\linewidth]{./1b_figure1.png}
-%  \caption{In this log-log plot we plot the modelled number of galaxies $N_i$ at the radii of the data file m11 against the data histogram of these same radii.}
-%\end{figure}
-
 \section*{Problem 1c}
 
-In an attempt to prove further why \textbf{leapfrog} is the best choice for an algorithm, we implement one of these aforementioned forward methods which we use to compute the time-evolutions of the orbits instead. I already made a Euler method for the kick-start in part b), but I decide to create another algorithm, the 4th-order Runge-Kutta algorithm instead, because as the name suggests it is accurate up to 4th instead of 1st order, and it is much more stable. What we expect from the results is that over time, the orbits found using this algorithm will diverge because RK4 is a forward method that adds energy to the system. The plots we made in part b) are plotted once again, this time for RK4. 
+In an attempt to prove further why \textbf{leapfrog} is the best choice for an algorithm, we implement one of these aforementioned forward methods which we use to compute the time-evolutions of the orbits instead. I already made a Euler method for the kick-start in part b), but I decide to create another algorithm, the 4th-order Runge-Kutta algorithm instead, because as the name suggests it is accurate up to 4th instead of 1st order, and it is much more stable. What we expect from the results is that over time, the orbits found using this algorithm will diverge because RK4 is a forward method that adds energy to the system. The smallest orbits with the lowest orbital period are expected to diverge the most as they complete the most orbits within the timespan of 200 years. In other words, Mercury would be the least stable. The plots we made in part b) are plotted once again, this time for RK4. 
 
-%\begin{figure}[h!]
-%  \centering
-%  \includegraphics[width=0.7\linewidth]{./1c_xyplot.png}
-%  \caption{Test.}
-%\end{figure}
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.7\linewidth]{./1c_xyplot.png}
+  \caption{Plot of all objects r(x,y,0) in the x-y plane over a timespan of 200 years in units of AU. We see the planets move in elliptical orbits around the Sun, but we'd expect a divergence from the centre after some time...}
+\end{figure}
 
-%\begin{figure}[h!]
-%  \centering
-%  \includegraphics[width=0.7\linewidth]{./1c_tzplot.png}
-%  \caption{Test.}
-%\end{figure}
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.7\linewidth]{./1c_tzplot.png}
+  \caption{Plot of the position in the z-plane as a function of time for all objects, spanning over a time of 200 years. We see that the orbits of the planets appear to be bound also, just like with leapfrog.}
+\end{figure}
 
-Furthermore, we now plot the difference in x-position between the Leapfrog method and RK4 over the timespan of 200 years. We expect to see a divergence here, as RK4 by definition should diverge as it is a forward method. 
+We see from the plots that the 4th order Runge-Kutta method actually does not cause any visible divergence, which is what you would expect for a forward method. A possible explanation for this is, is that the divergence is simply too little to notice over a timespan of only 200 years. To confirm this, let us now plot the difference in x-position between the Leapfrog method and RK4 over the timespan of 200 years. We expect to see at least some divergence here, as RK4 by definition should diverge as it is a forward method. 
 
-%\begin{figure}[h!]
-%  \centering
-%  \includegraphics[width=0.7\linewidth]{./1c_xdifftplot.png}
-%  \caption{Test.}
-%\end{figure}
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.7\linewidth]{./1c_xdifftplot.png}
+  \caption{Plot of the difference in x-position between the one calculated using leapfrog versus RK4, as a function of time. Luckily, the divergence we expected is visible here! Earth, Mercury and Venus appear to have the shapes of (diverging) cones.}
+\end{figure}
 
+As we can see, there is some divergence visible in the x position of the RK4 compared to leapfrog. Inspecting the units of the y-axis (x difference in AU), we see that this divergence is very insignificant for our chosen timespan, only increasing by less than 1 AU for the quickest orbits like Mercury, Venus and Earth. Perhaps this is because RK4 is still too stable for these types of timescales. 
 
 
 
