@@ -78,6 +78,8 @@ Moving on to the problem, we can compute the initial value of the Poisson equati
   \caption{Plot of a 2D grid slice at z = 14.5 of the gravitational potential $\Phi$. There are only positive values visible because all the values that are negative are extremely small and thus are displayed as 0.}
 \end{figure}
 
+\clearpage
+
 As we expected, the potential $\Phi$ is just a rescaled value of the overdensity values from problem 2a. This result is makes sense as you'd expect the gravitational potential and thus force to trace the overdensity. We know from the study of large scale structure that overdensities are essentially just potential wells: regions of large potential energy. Next, we create the same plots, but this time for log$_{10}(|\Phi|)$, where we take the absolute value of the potential, most importantly because negative logarithms are undefined, but also because the magnitude of the potential stays the same anyway: the difference is over- versus underdensities. We also apply an additional filter for extremely low values. This is because upon inspection of the potential values for the 2D grid slices, we notice that most values range between 0.1 and $10^{-5}$, but there are some outliers at ridiculously low values like $10^{-16}$, so we decide to filter these outliers by applying a lower limit of $10^{-6}$ upon the value of $\Phi$. This allows us to much better see the contrast between potential values at different grid points! Leaving the outliers in resutls in a colormap that pretty much consists of only 2 colors, namely the outliers and the rest. The plots are shown below. Note that this time, the colorbar at the side is logarithmic, so e.g. -2 refers to $10^{-2}$. 
 
 \begin{figure}[h!]
@@ -103,6 +105,8 @@ As we expected, the potential $\Phi$ is just a rescaled value of the overdensity
   \includegraphics[width=0.5\linewidth]{./2b_log145.png}
   \caption{Plot of a 2D grid slice at z = 14.5 of the log10 of the gravitational potential, log$_10(|\Phi|)$. We apply two filters: the absolute value and a lower limit of $10^{-6}$.}
 \end{figure}
+
+\clearpage
 
 
 

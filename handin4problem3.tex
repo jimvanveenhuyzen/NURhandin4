@@ -1,11 +1,11 @@
-\section*{Code of Problem 2}
+\section*{Code of Problem 3}
 
 The code is included below. Like in the previous hand-ins, I use code between sub-questions so I found that having one big .py file per problem is the most efficient.
-\lstinputlisting{NURhandin4_2.py}
+\lstinputlisting{NURhandin4_3.py}
 
 \newpage
 
-\section*{Problem 2a}
+\section*{Problem 3a}
 
 The 2D slices of the density contrast $\delta$ are plotted below at $z$ = 4.5, 9.5, 11.5 and 14.5 respectively as a colormap. Note here that positive values in the colorbar on the side correspond to overdensities relative to the mean density of the volume, while negative values indicate underdensities.
 
@@ -15,100 +15,15 @@ The 2D slices of the density contrast $\delta$ are plotted below at $z$ = 4.5, 9
   \caption{Plot of a 2D grid slice at z = 4.5 of the density contrast $\delta$. Positive/negative values correspond to an overdensity/underdensity compared to the mean density of the grid.}
 \end{figure}
 
-\begin{figure}[h!]
-  \centering
-  \includegraphics[width=0.5\linewidth]{./2a_delta95.png}
-  \caption{Plot of a 2D grid slice at z = 9.5 of the density contrast $\delta$. Positive/negative values correspond to an overdensity/underdensity compared to the mean density of the grid.}
-\end{figure}
-
-\begin{figure}[h!]
-  \centering
-  \includegraphics[width=0.5\linewidth]{./2a_delta115.png}
-  \caption{Plot of a 2D grid slice at z = 11.5 of the density contrast $\delta$. Positive/negative values correspond to an overdensity/underdensity compared to the mean density of the grid.}
-\end{figure}
-
-\begin{figure}[h!]
-  \centering
-  \includegraphics[width=0.5\linewidth]{./2a_delta145.png}
-  \caption{Plot of a 2D grid slice at z = 14.5 of the density contrast $\delta$. Positive/negative values correspond to an overdensity/underdensity compared to the mean density of the grid.}
-\end{figure}
+\lstinputlisting{handin4problem3.txt}
 
 \newpage
 
-\section*{Problem 2b}
+\section*{Problem 3b}
 
-In problem b) we are asked to find gravitational potential $\Phi$, which we require to compute the gravitational forces at each grid point. As said in the problem, we can find cleverly this by Fourier transforming the Poisson equation, rewriting the result into a transformed potential by dividing by $k^2$ and finally inverse Fourier transforming this. To be clear, the definition of the Fourier- and inverse Fourier transform between 3-dimensional position space $\vec{x}$ and k-space $\vec{k}$ are given by:
+Test
 
-\begin{equation}
-\hat{f}(\vec{k}) = \int_{-\infty}^{\infty} f(\vec{x}) e^{i \vec{k} \cdot \vec{x}}d\vec{x} 
-\end{equation}
-
-\begin{equation}
-f(\vec{x}) = \int_{-\infty}^{\infty} \hat{f}(\vec{k}) e^{-i \vec{k} \cdot \vec{x}}d\vec{k} 
-\end{equation}
-
-The way we solve this problem numerically is by implementing both a FFT and inverse FFT method for the 3-dimensional grid we have. In essence, the 3D FFT is the same as the 1D FFT, but now we have to split the grid into 1D slices and FFT each slice, looping through the array $3N^2$ times for both transforms. The specific algorithm we use to implement the FFT is the Recursive version of the \textbf{Cooley-Tukey} algorithm. My implementation of the algorithm is slightly different from the lecture notes. I first check if $N>1$, after which I split the input array into 2 seperate arrays containing the even and odd elements respectively, which I call recursively with $N = N/2$. Next, we seperately transform both arrays using the formulas given in the slides containing the complex exponential term, looping from $k=0$ to $k = N/2$. After this process we concatenate the arrays into one final, Fourier transformed array. This algorithm only works if $N$ is a power of 2, but luckily we are dealing with a grid of dimenions $16 \times 16 \times 16$, so this holds. Another relevant note is that the exponent we use in the algorithm is somewhat different compared to the one in the equation we just defined above. The exponent we use is given by $e^{i 2\pi k/N}$.\\
-
-The inverse FFT is done exactly the same using Cooley-Tukey, but now we recursively call the inverse FFT instead and use the complex conjugate in the exponential term. Another important note is that we have to divide the result of the inverse FFT by $N$ to normalise the function properly. We do this outside of the function, because if we try to code this inside the function, it was recursively do this normalisation step and thus lead to the wrong result. Note that this whole situation with different exponents and normalisations is heavily dependent on definition, so there are  more ways to do a valid Fourier transform.\\
-
-Moving on to the problem, we can compute the initial value of the Poisson equation $\nabla^2 \Phi = 4\pi G \bar{\rho} (1 + \delta)$, where $\bar{\rho}$ is the mean density and $\delta$ is a $16 \times 16 \times 16$ three dimensional grid of density contrast values $\delta_{i,j,k}$. We first apply the FFT on this total expression (just a rescaled density contrast) from which we find $k^2 \hat{\Phi}$, the product of the wave vector $\vec{k} = 2\pi \vec{n}/\lambda$ squared and the gravitational potential in k-space, $\hat{\Phi}(k)$. Here, $\vec{n}$ is the position space vector representing the grid, so it is again a $16 \times 16 \times 16$ vector, ranging from 0.5 to 15.5 along each axis. We use this in our calculating to find $k^2$, which ends up equal to a value of about 631, so about 2 to 3 orders of magnitude. To convert this to just the transformed potential, we divide the result of the FFT by $k^2$. As a final step we inverse FFT $\hat{\Phi}(k)$, which is proportional to $\hat{\delta}/k^2$. From this we obtain the final transformed potential, $\Phi$. This potential is plotted again below, which as expected just ends up being a scaling of the regular density contrast $\delta$.\\
-
-
-\begin{figure}[h!]
-  \centering
-  \includegraphics[width=0.5\linewidth]{./2b_pot45.png}
-  \caption{Plot of a 2D grid slice at z = 4.5 of the gravitational potential $\Phi$. There are only positive values visible because all the values that are negative are extremely small and thus are displayed as 0.}
-\end{figure}
-
-\begin{figure}[h!]
-  \centering
-  \includegraphics[width=0.5\linewidth]{./2b_pot95.png}
-  \caption{Plot of a 2D grid slice at z = 9.5 of the gravitational potential $\Phi$. There are only positive values visible because all the values that are negative are extremely small and thus are displayed as 0.}
-\end{figure}
-
-\begin{figure}[h!]
-  \centering
-  \includegraphics[width=0.5\linewidth]{./2b_pot115.png}
-  \caption{Plot of a 2D grid slice at z = 11.5 of the gravitational potential $\Phi$. There are only positive values visible because all the values that are negative are extremely small and thus are displayed as 0.}
-\end{figure}
-
-\begin{figure}[h!]
-  \centering
-  \includegraphics[width=0.5\linewidth]{./2b_pot145.png}
-  \caption{Plot of a 2D grid slice at z = 14.5 of the gravitational potential $\Phi$. There are only positive values visible because all the values that are negative are extremely small and thus are displayed as 0.}
-\end{figure}
-
-As we expected, the potential $\Phi$ is just a rescaled value of the overdensity values from problem 2a. This result is makes sense as you'd expect the gravitational potential and thus force to trace the overdensity. We know from the study of large scale structure that overdensities are essentially just potential wells: regions of large potential energy. Next, we create the same plots, but this time for log$_{10}(|\Phi|)$, where we take the absolute value of the potential, most importantly because negative logarithms are undefined, but also because the magnitude of the potential stays the same anyway: the difference is over- versus underdensities. We also apply an additional filter for extremely low values. This is because upon inspection of the potential values for the 2D grid slices, we notice that most values range between 0.1 and $10^{-5}$, but there are some outliers at ridiculously low values like $10^{-16}$, so we decide to filter these outliers by applying a lower limit of $10^{-6}$ upon the value of $\Phi$. This allows us to much better see the contrast between potential values at different grid points! Leaving the outliers in resutls in a colormap that pretty much consists of only 2 colors, namely the outliers and the rest. The plots are shown below. Note that this time, the colorbar at the side is logarithmic, so e.g. -2 refers to $10^{-2}$. 
-
-\begin{figure}[h!]
-  \centering
-  \includegraphics[width=0.5\linewidth]{./2b_log45.png}
-  \caption{Plot of a 2D grid slice at z = 4.5 of the log10 of the gravitational potential, log$_10(|\Phi|)$. We apply two filters: the absolute value and a lower limit of $10^{-6}$.}
-\end{figure}
-
-\begin{figure}[h!]
-  \centering
-  \includegraphics[width=0.5\linewidth]{./2b_log95.png}
-  \caption{Plot of a 2D grid slice at z = 9.5 of the log10 of the gravitational potential, log$_10(|\Phi|)$. We apply two filters: the absolute value and a lower limit of $10^{-6}$.}
-\end{figure}
-
-\begin{figure}[h!]
-  \centering
-  \includegraphics[width=0.5\linewidth]{./2b_log115.png}
-  \caption{Plot of a 2D grid slice at z = 11.5 of the log10 of the gravitational potential, log$_10(|\Phi|)$. We apply two filters: the absolute value and a lower limit of $10^{-6}$.}
-\end{figure}
-
-\begin{figure}[h!]
-  \centering
-  \includegraphics[width=0.5\linewidth]{./2b_log145.png}
-  \caption{Plot of a 2D grid slice at z = 14.5 of the log10 of the gravitational potential, log$_10(|\Phi|)$. We apply two filters: the absolute value and a lower limit of $10^{-6}$.}
-\end{figure}
-
-
-
-
-
-
+\section*{Problem 3c}
 
 
 
