@@ -47,7 +47,10 @@ The way we solve this problem numerically is by implementing both a FFT and inve
 
 The inverse FFT is done exactly the same using Cooley-Tukey, but now we recursively call the inverse FFT instead and use the complex conjugate in the exponential term. Another important note is that we have to divide the result of the inverse FFT by $N$ to normalise the function properly. We do this outside of the function, because if we try to code this inside the function, it was recursively do this normalisation step and thus lead to the wrong result. Note that this whole situation with different exponents and normalisations is heavily dependent on definition, so there are  more ways to do a valid Fourier transform.\\
 
-Moving on to the problem, we can compute the initial value of the Poisson equation $\nabla^2 \Phi = 4\pi G \bar{\rho} (1 + \delta)$, where $\bar{\rho}$ is the mean density and $\delta$ is a $16 \times 16 \times 16$ three dimensional grid of density contrast values $\delta_{i,j,k}$. We first apply the FFT on this total expression (just a rescaled density contrast) from which we find $k^2 \hat{\Phi}$, the product of the wave vector $k = 2\pi/\lambda$ squared and the gravitational potential in k-space, $\hat{\Phi}(k)$.
+Moving on to the problem, we can compute the initial value of the Poisson equation $\nabla^2 \Phi = 4\pi G \bar{\rho} (1 + \delta)$, where $\bar{\rho}$ is the mean density and $\delta$ is a $16 \times 16 \times 16$ three dimensional grid of density contrast values $\delta_{i,j,k}$. We first apply the FFT on this total expression (just a rescaled density contrast) from which we find $k^2 \hat{\Phi}$, the product of the wave vector $k = 2\pi/\lambda$ squared and the gravitational potential in k-space, $\hat{\Phi}(k)$. To convert this to just the transformed potential, we divide the result of the FFT by $k^2$. As a final step we inverse FFT $\hat{\Phi}(k)$, which is proportional to $\hat{\delta}/k^2$. From this we obtain the final transformed potential, $\Phi$.\\
+
+
+
 
 
 

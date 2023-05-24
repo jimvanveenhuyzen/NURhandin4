@@ -1,17 +1,17 @@
 \section*{Code of Problem 1}
 
 The code is included below. Like in the previous hand-ins, I use code between sub-questions so I found that having one big .py file per problem is the most efficient.
-%\lstinputlisting{NURhandin4_1.py}
+\lstinputlisting{NURhandin4_1.py}
 
 \section*{Problem 1a}
 
 In the first sub-question of problem 1 we are supposed to make two plots showing the $(x,y)$ and $(x,z)$ positions of all componenets of the solar system at some set time $t_0$. We let this time be equal to the given time in the example. This problem is very simple, we copy the given routine and essentially just apply it for not only Mars but all components of the solar system, letting the position $\vec{r}$ and velocities ${v}$ of the components be an array corresponding to $\vec{r} = (x,y,z)$ and $\vec{v} = (v_x,v_y,v_z)$ respectively, which we import using the \textbf{astropy} library. Converting to units of AU following the example, we obtain the following two plots. The size of the planets and the Sun in the plots are $\textbf{not}$ to scale! All planets appear to have the same size (not realistic) and I made the Sun slightly larger to accentuate its size and central position. I chose the sizes of the planets in a way such that Mercury, Venus and Earth are distinguishable as they are all quite close to the Sun. 
 
-%\begin{figure}[h!]
-%  \centering
-%  \includegraphics[width=0.7\linewidth]{./1a_xyplot.png}
-%  \caption{Test.}
-%\end{figure}
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.7\linewidth]{./1a_xyplot.png}
+  \caption{Test.}
+\end{figure}
 
 %\begin{figure}[h!]
 %  \centering
@@ -57,17 +57,6 @@ I already hinted at the reason that leapfrog is a suitable algorithm to use for 
 
 All the algorithms that are part of the material except for leapfrog are either explicit/forward or implicit/backward methods of solving ODEs. Using explicit methods for the orbit adds energy over time, causing the orbits to diverge in an ever increasing spiral shape, while implicit methods remove energy, causing the orbit to spiral toward the centre over time. This is because energy needs to be kept constant per timestep in order to conserve a circular orbit; it has a known associated energy! So in conclusion, leapfrog is best to use here. 
 
-%\begin{table}[!h]
-%\begin{tabular}{llllll}
-%\textbf{} & \textbf{$N_{sat}$} & \textbf{a} & \textbf{b} & \textbf{c} & \textbf{$\chi^{2}$} \\
-%\textbf{$m_{11}$} &    0.014       &     2.44      &      0.21     &      1.10     &     $8.8 \cdot 10^{12}$      \\
-%\textbf{$m_{12}$} &     0.25      &      2.44      &      0.21     &      1.10    &     $9.8 \cdot 10^{15}$      \\
-%\textbf{$m_{13}$} &     4.4      &     2.44      &      0.21     &      1.10    &     $1.0 \cdot 10^{17}$      \\
-%\textbf{$m_{14}$} &      29.1     &      2.44      &      0.21     &      1.10     &     $2.5 \cdot 10^{16}$      \\
-%\textbf{$m_{15}$} &       329.5    &      2.44      &      0.21     &      1.10    &         $3.1 \cdot 10^{16}$ 
-%\end{tabular}
-%\end{table}
-
 %\begin{figure}[h!]
 %  \centering
 %  \includegraphics[width=0.7\linewidth]{./1b_figure1.png}
@@ -87,6 +76,14 @@ In an attempt to prove further why \textbf{leapfrog} is the best choice for an a
 %\begin{figure}[h!]
 %  \centering
 %  \includegraphics[width=0.7\linewidth]{./1c_tzplot.png}
+%  \caption{Test.}
+%\end{figure}
+
+Furthermore, we now plot the difference in x-position between the Leapfrog method and RK4 over the timespan of 200 years. We expect to see a divergence here, as RK4 by definition should diverge as it is a forward method. 
+
+%\begin{figure}[h!]
+%  \centering
+%  \includegraphics[width=0.7\linewidth]{./1c_xdifftplot.png}
 %  \caption{Test.}
 %\end{figure}
 
