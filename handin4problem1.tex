@@ -73,6 +73,8 @@ In an attempt to prove further why \textbf{leapfrog} is the best choice for an a
   \caption{Plot of the position in the z-plane as a function of time for all objects, spanning over a time of 200 years. We see that the orbits of the planets appear to be bound also, just like with leapfrog.}
 \end{figure}
 
+\clearpage
+
 We see from the plots that the 4th order Runge-Kutta method actually does not cause any visible divergence, which is what you would expect for a forward method. A possible explanation for this is, is that the divergence is simply too little to notice over a timespan of only 200 years. To confirm this, let us now plot the difference in x-position between the Leapfrog method and RK4 over the timespan of 200 years. We expect to see at least some divergence here, as RK4 by definition should diverge as it is a forward method. 
 
 \begin{figure}[h!]
@@ -81,7 +83,7 @@ We see from the plots that the 4th order Runge-Kutta method actually does not ca
   \caption{Plot of the difference in x-position between the one calculated using leapfrog versus RK4, as a function of time. Luckily, the divergence we expected is visible here! Earth, Mercury and Venus appear to have the shapes of (diverging) cones.}
 \end{figure}
 
-As we can see, there is some divergence visible in the x position of the RK4 compared to leapfrog. Inspecting the units of the y-axis (x difference in AU), we see that this divergence is very insignificant for our chosen timespan, only increasing by less than 1 AU for the quickest orbits like Mercury, Venus and Earth. Perhaps this is because RK4 is still too stable for these types of timescales. 
+As we can see, there is some divergence visible in the x position of the RK4 compared to leapfrog. Inspecting the units of the y-axis (x difference in AU), we see that this divergence is very insignificant for our chosen timespan, only increasing by less than 1 AU for the quickest orbits like Mercury, Venus and Earth. Perhaps this is because RK4 is still too stable for these types of timescales. One \textbf{significant} advantage of leapfrog over RK4 is that it is many times faster: leapfrog takes under 30 seconds to run while RK4 takes several minutes at least. Especially in larger simulations this is a big factor to consider as that time difference can stack in many body simulations. 
 
 
 

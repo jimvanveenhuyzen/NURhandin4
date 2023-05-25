@@ -72,6 +72,8 @@ first10lines = np.genfromtxt('features.txt')[0:10,:]
 print('The first 10 lines of the features are\n',first10lines)
 np.savetxt('handin4problem3.txt',first10lines,fmt='%1.8f')
 
+print('The rest of the output file consists of the results from 3b and 3c:\n')
+
 #PROBLEM 3B
 
 def cost_function(xdata,ydata,weights,theta0):
@@ -200,7 +202,7 @@ weights_all = np.ones(len(features_all[1])) #start with weights = 1
 
 min_J_all, min_weights_all =\
    gradient_descent(training_xdata_all,training_ydata,weights_all,0.05,1,3000)
-print('The minimized weight values for kappa_co, color and flux are',\
+print('The minimized weight values using all features are',\
       min_weights_all)
                      
 plt.plot(np.arange(0,3000,1),min_J_all,label=r'$\theta_1$ =')
@@ -406,7 +408,7 @@ test_xdata_all = features_all[700:]
 ymodel_all = y_model(test_xdata_all,min_weights_all,1)
 
 CM_features_all = confusion_matrix(test_ylabel,ymodel_all)
-print('The confusion matrix for kappa, color and flux is given by\n',\
+print('The confusion matrix using all features is given by\n',\
       CM_features_all)
 F1_score_all = F_score(1,CM_features_all)
 print('The F1 score of the training set using all features is'\
