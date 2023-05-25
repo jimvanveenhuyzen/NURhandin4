@@ -67,7 +67,7 @@ We see that we need to find the derivative of the cost function with respect to 
 \theta_{j}' = \theta_j - \alpha \frac{1}{m} \vec{x}^T [\vec{h}_{\theta_j}(\vec{x}) - \vec{y}]
 \end{equation}
 
-I write an algorithm for the gradient descent specifically for this problem, calling a function of the sigmoid and cost functions to assist in the calculation. Throughout this assignment I will keep the learning rate equal and use a varying number of iterations instead, as these two are directly related and it makes more sense to vary just one of these and keep one constant. For the algorithm I will use 4 pairings of 2 features to test which feature pair produces the most accurate model to predict whether a galaxy is a spiral or elliptical galaxy. I think we can extract most information from using 4 pairs of random combinations from the total pool of 4 features, analysing all possible pairings seem a bit arbitrary. Running the gradient descent 4 times for a training set of the first $70\%$ of the objects produces the following weights $\vec{\theta}$ for the 4 listed feature pairs that minimize their respective cost functions $J(\vec{\theta})$:
+I write an algorithm for the gradient descent specifically for this problem, calling a function of the sigmoid and cost functions to assist in the calculation. Throughout this assignment I will keep the learning rate equal and use a varying number of iterations instead, as these two are directly related and it makes more sense to vary just one of these and keep one constant. For the algorithm I will use 4 pairings of 2 features to test which feature pair produces the most accurate model to predict whether a galaxy is a spiral or elliptical galaxy. I think we can extract most information from using 4 pairs of random combinations from the total pool of 4 features, analysing all possible pairings seem a bit arbitrary. Running the gradient descent 4 times for a training set of the first $70\%$ of the objects produces the following weights $\vec{\theta}$ for the 4 listed feature pairs that minimize their respective cost functions $J(\vec{\theta})$. 
 
 \begin{table}[!h]
 \centering
@@ -80,7 +80,7 @@ extend \& flux &     0.459     &      -0.121
 \end{tabular}
 \end{table}
 
-For these same feature pairings and weights, the convergence of the cost function as a function of the number of iterations is plotted below. The number of iterations I used depends on how fast the cost function converged. 
+For these same feature pairings and weights, the convergence of the cost function as a function of the number of iterations is plotted below. The number of iterations I used depends on how fast the cost function converged. As a bonus, I run the model an additional time with all of the features enabled to see how they stack up against one another. Running the model produces the weights $\theta_1$ = 4.749, $\theta_2$ = 2.057, $\theta_3$ = 0.397 and $\theta_4$ = 0.040 for $\kappa_{co}$, color, galaxy extension and flux respectively. 
 
 \begin{figure}[h!]
   \centering
@@ -106,6 +106,12 @@ For these same feature pairings and weights, the convergence of the cost functio
   \caption{The cost function J($\theta$) as a function of the number of iterations for the feature pair extend and line emission flux. Found weights that minimize J($\theta$) are listed in the table above. The shape of the function is somewhat different in that it is less smooth.}
 \end{figure}
 
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.5\linewidth]{./3b_costall.png}
+  \caption{The cost function J($\theta$) as a function of the number of iterations using all features in the model. Found weights that minimize J($\theta$) are listed in the text.}
+\end{figure}
+
 \clearpage
 
 We see that for the first three pairs of features, the cost function has a smooth convergence with the number of iterations. The last plot however has a bit of an odd shape and looks more like two linear slopes connected by a kink in the curve. I think the reason for this is that both the extend and line emission flux are bad features to use in the model. I tried reducing the bias $\theta_0$ but that seemed to have no effect either. My reasoning for believing extend and flux are bad tracers of whether a galaxy is spiral or elliptical is from comparing values of the weights in the table. We see that pairing either the ordered rotation $\kappa_{co}$ or color with extend or flux shows that $\kappa_{co}$ or color is always the dominant tracer of the galaxy type by a significant amount. This leads me to believe that the degree of how well the features trace the galaxy type (class) is chronological: $\kappa_{co}$ traces the class best, followed by color, then galaxy extension and finally the line-flux emission. We will do c) and see if this statement seems correct by looking at the $F_1$ scores. 
@@ -122,12 +128,12 @@ FN &   \textbf{TN}\\
 \end{tabular}
 \end{table}
 
-In terms of formatting, for each feature pairing I will list the confusion matrix first which will list the the number of true/false positive/negatives and below it the $F_1$ score to test how well the model did. Finally I will plot the two features against each other together with the decision boundary. The decision boundary defines the perfect seperation between class 0 and 1 according to the \textbf{model}, so plotting in the actual data gives us a visualization of false positives and false negatives. At the end, I will comment on what we find. For the first pair I will explain the methodology a bit more in depth. 
+In terms of formatting, for each feature pairing I will list the confusion matrix first which will list the the number of true/false positive/negatives and below it the $F_1$ score to test how well the model did. Finally I will plot the two features against each other together with the decision boundary. The decision boundary defines the perfect seperation between class 0 and 1 according to the \textbf{model}, so plotting in the actual data gives us a visualization of false positives and false negatives. At the end, I will comment on what we find. For the first pair I will explain the methodology a bit more in depth. Note that in some of the plots I leave out some extreme outliers to better visualize the vast majority of points. 
 
 \newpage
-\subsection*{Color and extend}
+\subsection*{Color and galaxy extension}
 
-The confusion matrix for the feature pair color and extend is:
+The confusion matrix for the feature pair color and galaxy extension is:
 
 \begin{table}[!h]
 \centering
@@ -159,6 +165,103 @@ The plot of the features against each other including decision boundary is as fo
 
 In this plot, the blue dots are class 1 and thus spiral galaxies, while the orange dots are class 0: elliptical galaxies. The points that 'cross' the decision boundary are due to false positives or negatives from the model, for example the elliptical galaxies to the right of the green line are false positives; the model classifies these as spiral galaxies (as they are right of the decision boundary), but they are in fact elliptical galaxies as we can see from the data. For the spirals left of the line, the same holds instead they are classified falsely as spirals. The better your model fits the data (minimal under- or overfitting), the less points that cross this boundary, as we will see from the plots that are yet to follow. We can check our plot using the confusion matrix, which states that there are quite a bit more false positives than false negatives, which seems to be true as well in the plot as there appear to be more orange points right of the line than blue points left of it. 
 
+\subsection*{$\kappa_{co}$ and line emission flux}
 
+The confusion matrix for the feature pair $\kappa_{co}$ and line emission flux is:
 
+\begin{table}[!h]
+\centering
+\begin{tabular}{c|c}
+\textbf{145} & 32\\ \hline
+0 &   \textbf{123}\\
+\end{tabular}
+\end{table}
 
+The $F_1$ score of this feature pair is $F_1 \approx$ 0.901. The plot of the features against each other including decision boundary is as follows.\\
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.5\linewidth]{./3c_plot03.png}
+  \caption{The features $\kappa_{co}$ versus line emission flux plotted against each other including a decision boundary marked in green.}
+\end{figure}
+
+Again, we see that we have no false negatives, only false positives which are visible as orange points to the right of the decision boundary. 
+
+\subsection*{$\kappa_{co}$ and color}
+
+The confusion matrix for the feature pair $\kappa_{co}$ and color is:
+
+\begin{table}[!h]
+\centering
+\begin{tabular}{c|c}
+\textbf{140} & 25\\ \hline
+5 &   \textbf{130}\\
+\end{tabular}
+\end{table}
+
+The $F_1$ score of this feature pair is $F_1 \approx$ 0.903. The plot of the features against each other including decision boundary is as follows.\\
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.5\linewidth]{./3c_plot01.png}
+  \caption{The features $\kappa_{co}$ versus color plotted against each other including a decision boundary marked in green.}
+\end{figure}
+
+As we expected from the confusion matrix we see a lot more false positives than false negatives. 
+
+\subsection*{Galaxy extension and flux}
+
+The confusion matrix for the feature pair galaxy extension and color is:
+
+\begin{table}[!h]
+\centering
+\begin{tabular}{c|c}
+\textbf{144} & 155\\ \hline
+1 &   \textbf{0}\\
+\end{tabular}
+\end{table}
+
+The $F_1$ score of this feature pair is $F_1 \approx$ 0.649. The plot of the features against each other including decision boundary is as follows.\\
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.5\linewidth]{./3c_plot23.png}
+  \caption{The features galaxy extension versus line emission flux plotted against each other including a decision boundary marked in green.}
+\end{figure}
+
+We can see from the confusion matrix that the model is unable to find any true negatives and only a single false negative. Furthermore, there are in turn more false positives and true ones, which means the spiral and elliptical galaxies are essentially just randomly fixed with each other as is visible in the plot: the model is useless. We see that the decision boundary is so far removed from the points that the points are barely visible. The direction of the slope of the decision boundary is also flipped, because one of the weights here is negative while the other is positives, distorting the shape of the function. We do see the single outlier that registers as a false negative. All in all, this plot is a mess. 
+
+\subsection{All features}
+
+The confusion matrix for the model using all features is:
+
+\begin{table}[!h]
+\centering
+\begin{tabular}{c|c}
+\textbf{139} & 25\\ \hline
+6 &   \textbf{130}\\
+\end{tabular}
+\end{table}
+
+The $F_1$ score of this feature pair is $F_1 \approx$ 0.900. 
+
+\subsection*{All features combined}
+
+\subsection*{Discussion and conclusion}
+
+To summerize, the $F_1$ scores of all four of the pairs is as follows:\\ 
+
+\begin{table}[!h]
+\centering
+\begin{tabular}{c|c}
+\textbf{Feature pair} & $F_1 \textbf{score}$\\ \hline 
+color \& extend &   0.751\\ \hline 
+$\kappa_{co}$ \& flux &     0.901\\ \hline 
+$\kappa_{co}$ \& color &     0.903\\ \hline
+extend \& flux &     0.649
+\end{tabular}
+\end{table}
+
+From these results we can conclude that the model with feature pair galaxy extension and line emission flux is the worst, the $F_1$ score is very low due its very low precision: the amount of false positives is higher than true positives. Next is the model with feature pair color and extend, which also has a relatively low $F_1$ score, also due to the fact that there are still a lot of false positives occuring, reducing precision. Finally, we see that both feature pairs involving $\kappa_{co}$ compared with both flux and color have the highest $F_1$ scores, from which we can deduce that the measure of ordered rotation $\kappa_{co}$ is the best tracer of whether a galaxy is a spiral or elliptical type \textbf{according to this data set}. We also compare color and extension, which scores higher than the extension paired with flux, so color is likely the second best tracer of galaxy type, followed by galaxy extension and lastly line emission flux being the worst tracer. We can also confirm this by looking at the resulting weights from the model that uses all features, which confirms this order in tracers. We also see that we get pretty much the same $F_1$ score using all features compared to just $\kappa_{co}$ and flux/color. This could be due to overfitting of the data because we input too many features: we appear to only need to compare one good and one poor tracer of the galaxy type to obtain a fairly accurate model.\\
+
+Physically, we could argue all four of the features could be potential tracers of galaxy type, but to determine the degree to which they do is what we can use machine learning for. We know from astrophysics that ordered rotation is a textbook characteristic of spiral galaxies, while ellipticals are dominated by velocity dispersions $\sigma_v$, so it is not too surprising this is the best tracer. Color is also a good tracer of galaxy type because it correlates with the age of stellar population and we know that elliptical galaxies are characterized by being older in general than spiral galaxies. Galaxy extension is a more ambiguous tracer. We assume spiral galaxies have a spiral shape and thus have extended spiral arms, but our assumption of elliptical galaxies being very spherical is also not correct. Elliptical galaxies could have random extensions that influence this extension parameter and thus making it seem like we are dealing with a spiral galaxy. Lastly, the line emission flux relates to the star formation rate in galaxies, but star formation can certainly take place in elliptical galaxies due to e.g. supernovae bursts or interacting with a neighbouring galaxy. 

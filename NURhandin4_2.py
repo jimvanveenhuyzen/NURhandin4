@@ -34,15 +34,15 @@ for p in range(n_part):
 #PROBLEM 2A
                 
 #The following two lines are just delta = (rho - mean(rho))/mean(rho)
-density_mean = 0.25 #1024 / 16**3, more efficient to just write out 1/4th.
+density_mean = 0.25 #1024 / 16**3#, more efficient to just write out 1/4th.
 delta = (densities - density_mean) * 4 #dividing by 0.25 is multiplying by 4.
 
 #The third coordinate of the grid is the z-coordinate, so convert 3D delta 
 #into a 2d grid slice at z = 4.5,9.5,11.5,14.5
-delta_z45 = delta[:][:][4]
-delta_z95 = delta[:][:][9]
-delta_z115 = delta[:][:][11]
-delta_z145 = delta[:][:][14]
+delta_z45 = delta[:,:,4]
+delta_z95 = delta[:,:,9]
+delta_z115 = delta[:,:,11]
+delta_z145 = delta[:,:,14]
 
 #Below are 4 colormap plots showing 2D grid slices of the density contrast at
 #varying z-coordinates. Positive values indicate an overdensity, negative 
@@ -81,12 +81,13 @@ plt.close()
 
 #PROBLEM 2B
 
-#I feel it is most appropriate to just use 1 for the gravitational constant,
-#as our other parameters like mean density and delta are also unit-less. 
+from astropy import constants as const
+
 #The only effect G has is multiplying the expression by a constant factor
 #so the potential will look identical in a colormap plot regardless of our
 #choice for the value of G. 
-G = 1 #gravitational constant
+
+G = const.G.to_value() #gravitational constant in SI units
 
 def FFT(x,N): #It is very important that N is a power of 2 and x a 1D array. 
     """
@@ -120,9 +121,11 @@ def invFFT(x,N):
             ifft_even[k] = t + np.exp(-2j*np.pi*k/N) * ifft_odd[k]
             ifft_odd[k] = t - np.exp(-2j*np.pi*k/N) * ifft_odd[k]
         x = np.concatenate((ifft_even,ifft_odd))
-    #The return value x contains the inverse Fourier transformed array values,
-    #multiplied by a factor N, so we must divide the outcome by a factor N to
-    #get the proper inversely transformed values. 
+    """
+    The return value x contains the inverse Fourier transformed array values,
+    multiplied by a factor N, so we must divide the outcome by a factor N to
+    get the proper inversely transformed values. 
+    """
     return x
 
 def FFT_3D(x):
@@ -160,18 +163,21 @@ def invFFT_3D(x):
             x[j,:,i] = invFFT(x[j,:,i],N)/N
     return x 
 
-def k_squared(grid):
+def k2_factor(x):
     """
     The wave-vector k is defined as (kx,ky,kz) = (nx,ny,nz)2pi/N. We use the 
     grid in the problem as the n vector (nx,ny,nz), as we evaluate the FFT
-    at these points.
+    at these points. A very important detail to remember is that we are
+    operating on a grid with centres 0.5,1.5,etc., so we need to divide by
+    these for kx,ky,kz rather than 0,1,2,etc. 
     """
-    N = len(grid)
-    k_x = k_y = k_z = grid*2*np.pi/N
-    k_squared = 0
-    for i in range(N):
-        k_squared = k_squared + k_x[i]*k_x[i] + k_y[i]*k_y[i] + k_z[i]*k_z[i]
-    return k_squared
+    N = len(x) #amount of grid points per period/per wavelength 
+    n_to_k = (N/(2*np.pi))**2 #converts from n to k space
+    for i in range(N): #divide each delta point by correct kx,ky,kz squared
+        for j in range(N):
+            for k in range(N):
+                x[i,j,k] = x[i,j,k]/((i+0.5)**2 + (j+0.5)**2 + (k+0.5)**2)
+    return x*n_to_k #multiply by prefactor due to periodicity
     
 def potential(delta):
     """
@@ -179,17 +185,16 @@ def potential(delta):
     """
     poisson = 4*np.pi*G*density_mean*(1+delta) #Poisson equation
     pot_fft = FFT_3D(poisson) #compute the FFT
-    k_sqrd = k_squared(grid) #find the value of k^2
-    pot_fft = pot_fft / k_sqrd #convert to phi(k) \propto delta(k) / k^2
+    pot_fft = k2_factor(pot_fft) #convert to phi(k) \propto delta(k) / k^2
     return invFFT_3D(pot_fft) #perform final inverse FFT for potential phi(r)
 
 grav_potential = potential(delta.astype(complex)) #need complex part for FFTs
 grav_potential = grav_potential.astype(float)#removes (irrelevant) complex part
 
-potential_z45 = grav_potential[:][:][4] #take the 4 2D slices as before
-potential_z95 = grav_potential[:][:][9]
-potential_z115 = grav_potential[:][:][11]
-potential_z145 = grav_potential[:][:][14]
+potential_z45 = grav_potential[:,:,4] #take the 4 2D slices as before
+potential_z95 = grav_potential[:,:,9]
+potential_z115 = grav_potential[:,:,11]
+potential_z145 = grav_potential[:,:,14]
 
 #potential plots for 2b
 plt.imshow(potential_z45)
@@ -224,29 +229,14 @@ plt.title(r'2D slice of potential $\Phi$ at z=14.5')
 plt.savefig('./2b_pot145.png')
 plt.close()
 
+grav_potential = np.abs(grav_potential) #take absolute value of potential
 
-#We apply 2 filters, first we take the absolute value of the potential.
-#Next, we set values that are very small (smaller than 10^-5) to some lower
-#limit on the potential. This is to 1) avoid zeros, which are singularities 
-#because the potential cannot be 0, and 2) to better display the contrast 
-#between relevant density values in the relevant range 0.1 to 10^-5. 
-#I decided on this by inspecting the 2D potential sliced arrays and concluding
-#that all 'regular' values are above 10^-5 and that there are some extreme
-#outliers around 10^(-18) which cause distortion of the plot if left alone
-#in log space. Normal space doesn't suffer from this because these values are 
-#normally rounded down to 0, but that ofcourse is undefined in log space. 
-
-grav_potential = np.abs(grav_potential) #take abs value
-grav_potential = np.where(grav_potential > 1.0e-5, grav_potential, 1.0e-6)
-
-potential_z45 = grav_potential[:][:][4]
-potential_z95 = grav_potential[:][:][9]
-potential_z115 = grav_potential[:][:][11]
-potential_z145 = grav_potential[:][:][14]
+potential_z45 = grav_potential[:,:,4] #take the 4 2D slices as before
+potential_z95 = grav_potential[:,:,9]
+potential_z115 = grav_potential[:,:,11]
+potential_z145 = grav_potential[:,:,14]
 
 #Plot colormaps of the log10 of the absolute values of the potential slices.
-#We may assume the purple squares in the plot with values 10^-6 are pretty
-#much equal to 0. 
 plt.imshow(np.log10(potential_z45))
 plt.colorbar()
 plt.xlabel('x-coordinate')
