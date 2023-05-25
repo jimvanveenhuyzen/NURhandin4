@@ -7,13 +7,41 @@ The code is included below. Like in the previous hand-ins, I use code between su
 
 \section*{Problem 3a}
 
-The 2D slices of the density contrast $\delta$ are plotted below at $z$ = 4.5, 9.5, 11.5 and 14.5 respectively as a colormap. Note here that positive values in the colorbar on the side correspond to overdensities relative to the mean density of the volume, while negative values indicate underdensities.
+We start off with a data file containing $n$ + 1 = 5 columns and $m$ = 1000 objects (galaxies). Of the 5 columns, the first four are the features ($x_{data}$ if you like) we will use in this Machine Learning oriented problem, while we will use the last as a (binary) label of the $y_{data}$. To prepare the data set, we will apply feature scaling on the four features, more specifically standardization, which is done using the following formula:\\
+
+\begin{equation}
+x_j^{(i)} = \frac{x_j^{(i)} - \mu_j}{\sigma_j}
+\end{equation}
+
+Here, we normalize every object $i$ in for every feature $j$, using a mean $\mu_j$ of 0 and a standard deviation $\sigma_j$ of 0 for all four features. We plot the resulting distribution of values of the objects for each of the four features below in histograms. The bars represent the counts in the respective bins. For each feature I choose a costum set of bins to best visualize the distribution.
 
 \begin{figure}[h!]
   \centering
-  \includegraphics[width=0.5\linewidth]{./2a_delta45.png}
-  \caption{Plot of a 2D grid slice at z = 4.5 of the density contrast $\delta$. Positive/negative values correspond to an overdensity/underdensity compared to the mean density of the grid.}
+  \includegraphics[width=0.5\linewidth]{./3a_kappa.png}
+  \caption{Distribution of the re-scaled $\kappa_{co}$ feature of the data. We use $\mu$ = 0, $\sigma$ = 1.}
 \end{figure}
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.5\linewidth]{./3a_color.png}
+  \caption{Distribution of the re-scaled color feature of the data. We use $\mu$ = 0, $\sigma$ = 1.}
+\end{figure}
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.5\linewidth]{./3a_extend.png}
+  \caption{Distribution of the re-scaled galaxy extension feature of the data. We use $\mu$ = 0, $\sigma$ = 1.}
+\end{figure}
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.5\linewidth]{./3a_flux.png}
+  \caption{Distribution of the re-scaled line emission flux feature of the data. We use $\mu$ = 0, $\sigma$ = 1.}
+\end{figure}
+
+\clearpage
+
+Next, we save these distribution to a text file with 4 features by 1000 objects. Of these objects, we print the first ten; the first 10 lines of the .txt file. These are printed below. 
 
 \lstinputlisting{handin4problem3.txt}
 
@@ -21,11 +49,115 @@ The 2D slices of the density contrast $\delta$ are plotted below at $z$ = 4.5, 9
 
 \section*{Problem 3b}
 
-Test
+Next, we move on to the actual Machine Learning. We will perform a form of supervised learning, logistic regression, using the first 70$\%$ of the data (700 objects) to obtain model weights $\vec{\theta}_j$ that minimize the cost function $J(\theta)$. Using these weights, we will then use the remaining 30$\%$ of the data set to compute whether the model predicts a 0/elliptical galaxy or 1/spiral galaxy, which we will then compare with the actual label in the data. First, let us define the cost function $J(\theta)$. For logistic regression we use a 'combination of costs' from 0s and 1s to define the cost function. Furthermore, we will use a sigmoid function $\sigma(z)$ = 1/(1 + $e^{-z}$) to classify whether whether the model predicts an elliptical or spiral galaxy (0 or 1). Here, the argument $z$ is equal to the hypothesis $h_{\vec{\theta}}(\vec{x}^{(i)})$ plus a bias factor $\theta_0$, which we will keep at 1 throughout this entire assignment. For logistic regression, the hypothesis $h_{\vec{\theta}}$ is defined as $h_{\vec{\theta}}(\vec{x}^{(i)})$ = $\vec{\theta}^T \vec{x}$. First off, the cost function for logistic regression is definded as:\\
+
+\begin{equation}
+J(\theta) = -\frac{1}{m} \sum_{i=0}^{m-1} \Big( y^{(i)} \text{ln}[h_{\vec{\theta}}(\vec{x}^{(i)})] + (1 - y^{(i)}) \text{ln} [1 - h_{\vec{\theta}}(\vec{x}^{(i)})]\Big)
+\end{equation}
+
+Here, $m$ are the number of objects per feature, $y^{(i)}$ are the 0 or 1 labels from the data, $\vec{x}^{(i)}$ are the objects $i$ corresponding to the chosen features. The way we minimize this cost function is by using the gradient descent method using a constant learning rate $\alpha$. The formula for this given by:\\
+
+\begin{equation}
+\theta_{j}' = \theta_j - \alpha \frac{\partial J(\theta)}{\partial \theta_j}
+\end{equation}
+
+We see that we need to find the derivative of the cost function with respect to the weights $\theta$. This can be done using the chain rule and results in $\frac{\partial J(\theta)}{\partial \theta_j} = \frac{1}{m} \vec{x}^T [\vec{h}_{\theta}(\vec{x}) - \vec{y}]$. This results in the following expression for gradient descent:\\
+
+\begin{equation}
+\theta_{j}' = \theta_j - \alpha \frac{1}{m} \vec{x}^T [\vec{h}_{\theta_j}(\vec{x}) - \vec{y}]
+\end{equation}
+
+I write an algorithm for the gradient descent specifically for this problem, calling a function of the sigmoid and cost functions to assist in the calculation. Throughout this assignment I will keep the learning rate equal and use a varying number of iterations instead, as these two are directly related and it makes more sense to vary just one of these and keep one constant. For the algorithm I will use 4 pairings of 2 features to test which feature pair produces the most accurate model to predict whether a galaxy is a spiral or elliptical galaxy. I think we can extract most information from using 4 pairs of random combinations from the total pool of 4 features, analysing all possible pairings seem a bit arbitrary. Running the gradient descent 4 times for a training set of the first $70\%$ of the objects produces the following weights $\vec{\theta}$ for the 4 listed feature pairs that minimize their respective cost functions $J(\vec{\theta})$:
+
+\begin{table}[!h]
+\centering
+\begin{tabular}{c|c|c}
+\textbf{Feature pair} & $\theta_1$ & $\theta_2$\\ \hline 
+color \& extend &   2.537       &     0.216\\ \hline 
+$\kappa_{co}$ \& flux &     4.694      &      0.067\\ \hline 
+$\kappa_{co}$ \& color &     4.754      &     2.062\\ \hline
+extend \& flux &     0.459     &      -0.121
+\end{tabular}
+\end{table}
+
+For these same feature pairings and weights, the convergence of the cost function as a function of the number of iterations is plotted below. The number of iterations I used depends on how fast the cost function converged. 
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.5\linewidth]{./3b_cost12.png}
+  \caption{The cost function J($\theta$) as a function of the number of iterations for the feature pair color and extend. Found weights that minimize J($\theta$) are listed in the table above.}
+\end{figure}
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.5\linewidth]{./3b_cost03.png}
+  \caption{The cost function J($\theta$) as a function of the number of iterations for the feature pair $\kappa_{co}$ and line emission flux. Found weights that minimize J($\theta$) are listed in the table above.}
+\end{figure}
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.5\linewidth]{./3b_cost01.png}
+  \caption{The cost function J($\theta$) as a function of the number of iterations for the feature pair $\kappa_{co}$ and color. Found weights that minimize J($\theta$) are listed in the table above.}
+\end{figure}
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.5\linewidth]{./3b_cost23.png}
+  \caption{The cost function J($\theta$) as a function of the number of iterations for the feature pair extend and line emission flux. Found weights that minimize J($\theta$) are listed in the table above. The shape of the function is somewhat different in that it is less smooth.}
+\end{figure}
+
+\clearpage
+
+We see that for the first three pairs of features, the cost function has a smooth convergence with the number of iterations. The last plot however has a bit of an odd shape and looks more like two linear slopes connected by a kink in the curve. I think the reason for this is that both the extend and line emission flux are bad features to use in the model. I tried reducing the bias $\theta_0$ but that seemed to have no effect either. My reasoning for believing extend and flux are bad tracers of whether a galaxy is spiral or elliptical is from comparing values of the weights in the table. We see that pairing either the ordered rotation $\kappa_{co}$ or color with extend or flux shows that $\kappa_{co}$ or color is always the dominant tracer of the galaxy type by a significant amount. This leads me to believe that the degree of how well the features trace the galaxy type (class) is chronological: $\kappa_{co}$ traces the class best, followed by color, then galaxy extension and finally the line-flux emission. We will do c) and see if this statement seems correct by looking at the $F_1$ scores. 
 
 \section*{Problem 3c}
 
+We can test our models by computing the $F_1$ score, which we can find from the confusion matrix. The confusion matrix contains the number of true/false positive/negatives which we find by comparing the class we find using the model and the actual class in the data. It is defined as a $2 \times 2$ matrix, with TP/FP true and false positives on top and FN/TN at the bottom. 
 
+\begin{table}[!h]
+\centering
+\begin{tabular}{c|c}
+\textbf{TP} & FP\\ \hline
+FN &   \textbf{TN}\\
+\end{tabular}
+\end{table}
+
+In terms of formatting, for each feature pairing I will list the confusion matrix first which will list the the number of true/false positive/negatives and below it the $F_1$ score to test how well the model did. Finally I will plot the two features against each other together with the decision boundary. The decision boundary defines the perfect seperation between class 0 and 1 according to the \textbf{model}, so plotting in the actual data gives us a visualization of false positives and false negatives. At the end, I will comment on what we find. For the first pair I will explain the methodology a bit more in depth. 
+
+\newpage
+\subsection*{Color and extend}
+
+The confusion matrix for the feature pair color and extend is:
+
+\begin{table}[!h]
+\centering
+\begin{tabular}{c|c}
+\textbf{128} & 68\\ \hline
+17 &   \textbf{87}\\
+\end{tabular}
+\end{table}
+
+Using these results, we write a function to compute the $F_1$ score in which we first compute the precision $\frac{TP}{TP + FP}$ and the recall $\frac{TP}{TP + FN}$ to finally use it to find the precision $2 \times \frac{\text{precision} \times \text{recall}}{\text{precision} + \text{recall}}$, where we used that $\beta = 1$ for $F_1$.\\
+
+The $F_1$ score of this feature pair is $F_1 \approx$ 0.751. Now, we need to plot the features together with the decision boundary. We can find the decision boundary by setting our selection function, the sigmoid $\sigma(z)$, equal to 1/2 and solving for $z$. The result is an expression for the second feature $x_2$ as a function of the first feature $x_1$ and, the two weights $\theta_1$ and $\theta_2$ and the bias $\theta_0$ = 1. This is found as follows:\\
+
+\begin{equation}
+\sigma(z) = \frac{1}{1 + e^{-z}} =  \frac{1}{1 + e^{-(\theta_0 + \theta_1 x_1 + \theta_2 x_2)}} = \frac{1}{2}
+\end{equation}
+
+\begin{equation}
+(\theta_0 + \theta_1 x_1 + \theta_2 x_2) = 0 \rightarrow x_2 = \frac{-\theta_0 - \theta_1 x_1}{\theta_2} = \frac{-(1 + \theta_1 x_1)}{\theta_2}
+\end{equation}
+
+The plot of the features against each other including decision boundary is as follows. To clarify we use the classification (0 or 1) from the data, not what the model thinks.\\
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.5\linewidth]{./3c_plot12.png}
+  \caption{The features color versus galaxy extension plotted against each other including a decision boundary marked in green.}
+\end{figure}
+
+In this plot, the blue dots are class 1 and thus spiral galaxies, while the orange dots are class 0: elliptical galaxies. The points that 'cross' the decision boundary are due to false positives or negatives from the model, for example the elliptical galaxies to the right of the green line are false positives; the model classifies these as spiral galaxies (as they are right of the decision boundary), but they are in fact elliptical galaxies as we can see from the data. For the spirals left of the line, the same holds instead they are classified falsely as spirals. The better your model fits the data (minimal under- or overfitting), the less points that cross this boundary, as we will see from the plots that are yet to follow. We can check our plot using the confusion matrix, which states that there are quite a bit more false positives than false negatives, which seems to be true as well in the plot as there appear to be more orange points right of the line than blue points left of it. 
 
 
 
